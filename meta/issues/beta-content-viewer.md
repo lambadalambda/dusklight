@@ -35,5 +35,11 @@ view these models in the browser.
 
 - Animation (BCK) playback is a stretch goal; first iteration is the
   bind/rest pose.
+- Update (2026-06-11): BCK playback implemented — the converter now
+  emits a full glTF skeleton (JNT1 hierarchy, DRW1/EVP1 skin weights,
+  inverse bind matrices) and bakes each BCK to per-frame TRS animation
+  clips (constant channels collapsed). The viewer plays clips via
+  AnimationMixer with a per-model clip selector. 63 clips across the
+  23 models; clips whose joint count mismatches a model are skipped.
 - Origin: archaeology session 2026-06-11 (unused-actor scan of all 384
   stage archives vs the OBJNAME table in d_stage.cpp).

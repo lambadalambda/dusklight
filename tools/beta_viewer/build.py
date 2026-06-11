@@ -110,18 +110,22 @@ def main():
                 print(f"!! missing {arc_path.name}, skipping")
                 continue
             raw = yaz0(arc_path.read_bytes())
+            files = list(rarc_files(raw))
+            anims = [(Path(n).stem, c) for n, c in files if n.endswith(".bck")]
             entry_models = []
-            for fname, content in rarc_files(raw):
+            for fname, content in files:
                 if not (fname.endswith(".bmd") or fname.endswith(".bdl")):
                     continue
                 model_id = f"{arc_name}_{Path(fname).stem}"
                 try:
-                    n_prims, n_tex = bmd2gltf.convert(content, models_dir, model_id)
+                    n_prims, n_anims = bmd2gltf.convert(content, models_dir, model_id,
+                                                        anims=anims)
                 except Exception as ex:
                     print(f"!! {arc_name}/{fname}: {ex}")
                     continue
                 entry_models.append(f"models/{model_id}.gltf")
-                print(f"{arc_name}/{fname}: {n_prims} prims, {n_tex} textures")
+                print(f"{arc_name}/{fname}: {n_prims} prims, "
+                      f"{n_anims}/{len(anims)} animations")
             if entry_models:
                 index.append({"title": title, "arc": arc_name, "source": source,
                               "note": note, "models": entry_models})

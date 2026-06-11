@@ -28,7 +28,26 @@ const grid = new THREE.GridHelper(1000, 20, 0x4a4168, 0x2a2640);
 scene.add(grid);
 
 let current = null;
+let mixer = null;
+let activeAction = null;
+const clock = new THREE.Clock();
 const loader = new GLTFLoader();
+const animBar = document.createElement('div');
+animBar.id = 'animbar';
+animBar.style.cssText =
+  'position:absolute;top:12px;left:14px;right:14px;display:flex;gap:6px;' +
+  'flex-wrap:wrap;max-height:30%;overflow-y:auto;';
+stage.appendChild(animBar);
+
+function setClip(gltf, clip, btn) {
+  animBar.querySelectorAll('button').forEach((b) => (b.style.background = '#383050'));
+  if (activeAction) { activeAction.stop(); activeAction = null; }
+  if (!clip) return;
+  if (btn) btn.style.background = '#6d5cae';
+  mixer = mixer || new THREE.AnimationMixer(gltf.scene);
+  activeAction = mixer.clipAction(clip);
+  activeAction.reset().setLoop(THREE.LoopRepeat).play();
+}
 
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight;
@@ -57,6 +76,8 @@ function frameObject(obj) {
 function show(url, title) {
   errBox.style.display = 'none';
   if (current) { scene.remove(current); current = null; }
+  if (mixer) { mixer.stopAllAction(); mixer = null; activeAction = null; }
+  animBar.innerHTML = '';
   hud.textContent = `loading ${url}…`;
   loader.load(url, (gltf) => {
     current = gltf.scene;
@@ -65,8 +86,26 @@ function show(url, title) {
     let tris = 0;
     current.traverse((n) => {
       if (n.isMesh && n.geometry.index) tris += n.geometry.index.count / 3;
+      if (n.isMesh) n.frustumCulled = false;
     });
-    hud.textContent = `${title} — ${tris.toLocaleString()} triangles — drag to orbit, scroll to zoom`;
+
+    if (gltf.animations.length) {
+      const stop = document.createElement('button');
+      stop.textContent = '⏹ bind pose';
+      stop.style.cssText = animBtnStyle;
+      stop.onclick = () => setClip(gltf, null);
+      animBar.appendChild(stop);
+      gltf.animations.forEach((clip) => {
+        const b = document.createElement('button');
+        b.textContent = `▶ ${clip.name}`;
+        b.style.cssText = animBtnStyle;
+        b.onclick = () => setClip(gltf, clip, b);
+        animBar.appendChild(b);
+      });
+      setClip(gltf, gltf.animations[0], animBar.children[1]);
+    }
+    hud.textContent = `${title} — ${tris.toLocaleString()} triangles — ` +
+      `${gltf.animations.length} animations — drag to orbit, scroll to zoom`;
   }, undefined, (e) => {
     errBox.style.display = 'grid';
     errBox.textContent = `failed to load ${url}: ${e.message || e}`;
@@ -74,8 +113,14 @@ function show(url, title) {
   });
 }
 
+const animBtnStyle =
+  'font-size:11px;padding:3px 9px;border-radius:5px;cursor:pointer;' +
+  'background:#383050;color:#d8d2ee;border:1px solid #4a4168;';
+
 function tick() {
   requestAnimationFrame(tick);
+  const dt = clock.getDelta();
+  if (mixer) mixer.update(dt);
   controls.update();
   renderer.render(scene, camera);
 }

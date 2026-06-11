@@ -263,6 +263,42 @@ def parse_inf1(d, off, size):
 PRIM_VERTS = {0x90: "tris", 0x98: "strip", 0xA0: "fan", 0x80: "quads"}
 
 
+def affine_inverse(m):
+    a = [[m[r][c] for c in range(3)] for r in range(3)]
+    det = (a[0][0] * (a[1][1] * a[2][2] - a[1][2] * a[2][1])
+           - a[0][1] * (a[1][0] * a[2][2] - a[1][2] * a[2][0])
+           + a[0][2] * (a[1][0] * a[2][1] - a[1][1] * a[2][0]))
+    if abs(det) < 1e-12:
+        det = 1e-12
+    inv = [
+        [(a[1][1] * a[2][2] - a[1][2] * a[2][1]) / det,
+         (a[0][2] * a[2][1] - a[0][1] * a[2][2]) / det,
+         (a[0][1] * a[1][2] - a[0][2] * a[1][1]) / det],
+        [(a[1][2] * a[2][0] - a[1][0] * a[2][2]) / det,
+         (a[0][0] * a[2][2] - a[0][2] * a[2][0]) / det,
+         (a[0][2] * a[1][0] - a[0][0] * a[1][2]) / det],
+        [(a[1][0] * a[2][1] - a[1][1] * a[2][0]) / det,
+         (a[0][1] * a[2][0] - a[0][0] * a[2][1]) / det,
+         (a[0][0] * a[1][1] - a[0][1] * a[1][0]) / det],
+    ]
+    t = [m[0][3], m[1][3], m[2][3]]
+    it = [-(inv[r][0] * t[0] + inv[r][1] * t[1] + inv[r][2] * t[2]) for r in range(3)]
+    return [inv[0] + [it[0]], inv[1] + [it[1]], inv[2] + [it[2]], [0, 0, 0, 1]]
+
+
+def quat_from_euler_zyx(rx, ry, rz):
+    """Quaternion for J3D joint rotation M = Rz * Ry * Rx, returned as xyzw."""
+    cx, sx = math.cos(rx / 2), math.sin(rx / 2)
+    cy, sy = math.cos(ry / 2), math.sin(ry / 2)
+    cz, sz = math.cos(rz / 2), math.sin(rz / 2)
+    # q = qz * qy * qx
+    w = cz * cy * cx + sz * sy * sx
+    x = cz * cy * sx - sz * sy * cx
+    y = cz * sy * cx + sz * cy * sx
+    z = sz * cy * cx - cz * sy * sx
+    return (x, y, z, w)
+
+
 def parse_shp1(d, off, size, arrays, draw_matrices):
     batch_count = u16(d, off + 8)
     batches_off = off + u32(d, off + 0x0C)
@@ -321,7 +357,8 @@ def decode_packet(d, o, size, attribs, arrays, draw_matrices, mtx_slots, verts, 
         o += 2
         base = len(verts)
         for _ in range(count):
-            mtx = draw_matrices[mtx_slots[0]] if mtx_slots[0] != 0xFFFF else None
+            drw = mtx_slots[0] if mtx_slots[0] != 0xFFFF else None
+            mtx = draw_matrices[drw] if drw is not None else None
             pos = nrm = uv = col = None
             for attr, atype in attribs:
                 if atype == 1 or attr == ATTR_PNMTXIDX or (1 <= attr <= 8):
@@ -330,7 +367,8 @@ def decode_packet(d, o, size, attribs, arrays, draw_matrices, mtx_slots, verts, 
                     if attr == ATTR_PNMTXIDX:
                         slot = val // 3
                         if mtx_slots[slot] != 0xFFFF:
-                            mtx = draw_matrices[mtx_slots[slot]]
+                            drw = mtx_slots[slot]
+                            mtx = draw_matrices[drw]
                     continue
                 idx = d[o] if atype == 2 else u16(d, o)
                 o += 1 if atype == 2 else 2
@@ -354,7 +392,7 @@ def decode_packet(d, o, size, attribs, arrays, draw_matrices, mtx_slots, verts, 
                 pos = transform_point(mtx, pos)
                 if nrm is not None:
                     nrm = transform_vector(mtx, nrm)
-            verts.append((pos, nrm, uv, col))
+            verts.append((pos, nrm, uv, col, drw))
 
         n = count
         kind = PRIM_VERTS[op]
@@ -547,10 +585,117 @@ def write_png(path, w, h, rgba):
     Path(path).write_bytes(png)
 
 
+# ---------------------------------------------------------------- BCK
+
+
+def parse_bck(d):
+    """Parse a J3D BCK (joint keyframe animation). Returns (duration, tracks)
+    where tracks[joint] = {component: [(time, value), ...]} with components
+    'sx sy sz rx ry rz tx ty tz' (rotations in radians)."""
+    assert d[:4] == b"J3D1", "not a J3D animation"
+    off = 0x20
+    assert d[off : off + 4] == b"ANK1", "no ANK1 chunk"
+    angle_exp = u8(d, off + 9)
+    duration = u16(d, off + 0x0A)
+    joint_count = u16(d, off + 0x0C)
+    scale_count = u16(d, off + 0x0E)
+    rot_count = u16(d, off + 0x10)
+    trans_count = u16(d, off + 0x12)
+    janim_off = off + u32(d, off + 0x14)
+    scale_off = off + u32(d, off + 0x18)
+    rot_off = off + u32(d, off + 0x1C)
+    trans_off = off + u32(d, off + 0x20)
+
+    scales = [f32(d, scale_off + 4 * i) for i in range(scale_count)]
+    rot_scale = (1 << angle_exp) * math.pi / 0x8000
+    rots = [s16(d, rot_off + 2 * i) * rot_scale for i in range(rot_count)]
+    transes = [f32(d, trans_off + 4 * i) for i in range(trans_count)]
+
+    def read_track(o, bank, is_rot):
+        count = u16(d, o)
+        index = u16(d, o + 2)
+        tangent = u16(d, o + 4)
+        if count == 1:
+            return [(0.0, bank[index])]
+        keys = []
+        stride = 4 if tangent == 1 else 3
+        for k in range(count):
+            base = index + k * stride
+            t = bank[base] / rot_scale if is_rot else bank[base]
+            # time values share the bank; for rotation banks they were
+            # pre-scaled above, so unscale the time component
+            keys.append((t, bank[base + 1]))
+        return keys
+
+    tracks = []
+    for j in range(joint_count):
+        e = janim_off + j * 0x36
+        comp = {}
+        order = ["sx", "rx", "tx", "sy", "ry", "ty", "sz", "rz", "tz"]
+        for ci, cname in enumerate(order):
+            o = e + ci * 6
+            if cname.startswith("s"):
+                comp[cname] = read_track(o, scales, False)
+            elif cname.startswith("r"):
+                comp[cname] = read_track(o, rots, True)
+            else:
+                comp[cname] = read_track(o, transes, False)
+        tracks.append(comp)
+    return duration, tracks
+
+
+def sample_track(keys, t):
+    if len(keys) == 1:
+        return keys[0][1]
+    if t <= keys[0][0]:
+        return keys[0][1]
+    if t >= keys[-1][0]:
+        return keys[-1][1]
+    for i in range(len(keys) - 1):
+        t0, v0 = keys[i]
+        t1, v1 = keys[i + 1]
+        if t0 <= t <= t1:
+            f = (t - t0) / (t1 - t0) if t1 > t0 else 0.0
+            return v0 + (v1 - v0) * f
+    return keys[-1][1]
+
+
+FPS = 30.0
+
+
+def bake_clip(clip_name, duration, tracks, joints):
+    """Sample a BCK per frame; returns per-joint dicts of baked TRS keyframes,
+    with constant channels collapsed to a single key."""
+    baked = []
+    nframes = max(int(duration), 1) + 1
+    for j, comp in enumerate(tracks):
+        trans, rot, scale = [], [], []
+        for f in range(nframes):
+            t = float(f)
+            trans.append((sample_track(comp["tx"], t),
+                          sample_track(comp["ty"], t),
+                          sample_track(comp["tz"], t)))
+            rot.append(quat_from_euler_zyx(sample_track(comp["rx"], t),
+                                           sample_track(comp["ry"], t),
+                                           sample_track(comp["rz"], t)))
+            scale.append((sample_track(comp["sx"], t),
+                          sample_track(comp["sy"], t),
+                          sample_track(comp["sz"], t)))
+        baked.append({"translation": collapse(trans), "rotation": collapse(rot),
+                      "scale": collapse(scale)})
+    return baked
+
+
+def collapse(values):
+    if all(v == values[0] for v in values):
+        return [values[0]]
+    return values
+
+
 # ---------------------------------------------------------------- glTF
 
 
-def convert(bmd_data, out_dir, name):
+def convert(bmd_data, out_dir, name, anims=None):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     chunks = find_chunks(bmd_data)
@@ -589,6 +734,21 @@ def convert(bmd_data, out_dir, name):
 
     shapes = parse_shp1(d, *chunks["SHP1"], arrays, draw_matrices)
 
+    # DRW1 entry -> up to 4 (joint, weight) influences for glTF skinning.
+    # Baked positions are model-space at bind, so IBMs are inverse bind globals.
+    skin_table = []
+    for weighted, idx in drw1:
+        if not weighted:
+            skin_table.append(((idx, 0, 0, 0), (1.0, 0.0, 0.0, 0.0)))
+        else:
+            env = sorted(envelopes[idx], key=lambda e: -e[1])[:4]
+            total = sum(w for _, w in env) or 1.0
+            js = tuple(ji for ji, _ in env) + (0,) * (4 - len(env))
+            ws = tuple(w / total for _, w in env) + (0.0,) * (4 - len(env))
+            skin_table.append((js, ws))
+    if not skin_table:
+        skin_table = [((0, 0, 0, 0), (1.0, 0.0, 0.0, 0.0))]
+
     # textures to PNG
     tex_files = []
     for i, (w, h, rgba, ws, wt) in enumerate(texes):
@@ -605,7 +765,10 @@ def convert(bmd_data, out_dir, name):
 
     def add_view(data, target):
         nonlocal bin_len
-        views.append({"buffer": 0, "byteOffset": bin_len, "byteLength": len(data), "target": target})
+        view = {"buffer": 0, "byteOffset": bin_len, "byteLength": len(data)}
+        if target is not None:
+            view["target"] = target
+        views.append(view)
         bin_parts.append(data)
         bin_len += len(data) + ((4 - len(data) % 4) % 4)
         bin_parts.append(b"\x00" * ((4 - len(data) % 4) % 4))
@@ -635,6 +798,20 @@ def convert(bmd_data, out_dir, name):
             attrs["COLOR_0"] = len(accessors)
             accessors.append({"bufferView": add_view(col, 34962), "componentType": 5126,
                               "count": len(verts), "type": "VEC4"})
+        if joints:
+            jdata = bytearray()
+            wdata = bytearray()
+            for v in verts:
+                js, ws = skin_table[v[4]] if v[4] is not None else (
+                    (0, 0, 0, 0), (1.0, 0.0, 0.0, 0.0))
+                jdata += struct.pack("<4B", *(min(j, 255) for j in js))
+                wdata += struct.pack("<4f", *ws)
+            attrs["JOINTS_0"] = len(accessors)
+            accessors.append({"bufferView": add_view(bytes(jdata), 34962),
+                              "componentType": 5121, "count": len(verts), "type": "VEC4"})
+            attrs["WEIGHTS_0"] = len(accessors)
+            accessors.append({"bufferView": add_view(bytes(wdata), 34962),
+                              "componentType": 5126, "count": len(verts), "type": "VEC4"})
         idx = b"".join(struct.pack("<3I", *t) for t in tris)
         idx_acc = len(accessors)
         accessors.append({"bufferView": add_view(idx, 34963), "componentType": 5125,
@@ -662,17 +839,95 @@ def convert(bmd_data, out_dir, name):
             mat["pbrMetallicRoughness"]["baseColorTexture"] = {"index": len(gl_textures) - 1}
         materials.append(mat)
 
+    # nodes: 0 = skinned mesh, 1..N = joints mirroring the J3D hierarchy
+    nodes = [{"mesh": 0, "name": name}]
+    skins = []
+    for i, j in enumerate(joints):
+        sx, sy, sz, rx, ry, rz, tx, ty, tz = j
+        nodes.append({"name": f"joint{i}",
+                      "translation": [tx, ty, tz],
+                      "rotation": list(quat_from_euler_zyx(rx, ry, rz)),
+                      "scale": [sx, sy, sz]})
+    roots = []
+    for i in range(len(joints)):
+        p = joint_parents.get(i)
+        if p is None:
+            roots.append(1 + i)
+        else:
+            nodes[1 + p].setdefault("children", []).append(1 + i)
+    if joints:
+        ibm = bytearray()
+        for g in globals_:
+            inv = affine_inverse(g)
+            # glTF mat4 is column-major
+            for c in range(4):
+                ibm += struct.pack("<4f", inv[0][c], inv[1][c], inv[2][c], inv[3][c])
+        ibm_acc = len(accessors)
+        accessors.append({"bufferView": add_view(bytes(ibm), None),
+                          "componentType": 5126, "count": len(joints), "type": "MAT4"})
+        skins.append({"joints": list(range(1, 1 + len(joints))),
+                      "inverseBindMatrices": ibm_acc, "skeleton": roots[0]})
+        nodes[0]["skin"] = 0
+
+    # animations: bake each BCK to per-frame TRS channels
+    animations = []
+    for clip_name, bck_data in (anims or []):
+        try:
+            duration, tracks = parse_bck(bck_data)
+        except Exception:
+            continue
+        if len(tracks) != len(joints):
+            continue
+        baked = bake_clip(clip_name, duration, tracks, joints)
+        nframes = max(int(duration), 1) + 1
+        samplers_a = []
+        channels = []
+        time_acc_cache = {}
+
+        def time_accessor(n):
+            if n in time_acc_cache:
+                return time_acc_cache[n]
+            if n == 1:
+                times = [0.0]
+            else:
+                times = [f / FPS for f in range(nframes)]
+                n = nframes
+            tdata = struct.pack(f"<{len(times)}f", *times)
+            acc = len(accessors)
+            accessors.append({"bufferView": add_view(tdata, None), "componentType": 5126,
+                              "count": len(times), "type": "SCALAR",
+                              "min": [times[0]], "max": [times[-1]]})
+            time_acc_cache[1 if len(times) == 1 else nframes] = acc
+            return acc
+
+        for ji, jb in enumerate(baked):
+            for path, comps in (("translation", 3), ("rotation", 4), ("scale", 3)):
+                vals = jb[path]
+                vdata = b"".join(struct.pack(f"<{comps}f", *v) for v in vals)
+                vacc = len(accessors)
+                accessors.append({"bufferView": add_view(vdata, None), "componentType": 5126,
+                                  "count": len(vals), "type": "VEC3" if comps == 3 else "VEC4"})
+                samplers_a.append({"input": time_accessor(len(vals)),
+                                   "output": vacc, "interpolation": "LINEAR"})
+                channels.append({"sampler": len(samplers_a) - 1,
+                                 "target": {"node": 1 + ji, "path": path}})
+        animations.append({"name": clip_name, "samplers": samplers_a, "channels": channels})
+
     gltf = {
         "asset": {"version": "2.0", "generator": "dusklight bmd2gltf"},
         "scene": 0,
-        "scenes": [{"nodes": [0]}],
-        "nodes": [{"mesh": 0, "name": name}],
+        "scenes": [{"nodes": [0] + roots}],
+        "nodes": nodes,
         "meshes": [{"primitives": meshes_prims, "name": name}],
         "materials": materials,
         "accessors": accessors,
         "bufferViews": views,
         "buffers": [{"uri": f"{name}.bin", "byteLength": bin_len}],
     }
+    if skins:
+        gltf["skins"] = skins
+    if animations:
+        gltf["animations"] = animations
     if gl_textures:
         gltf["textures"] = gl_textures
         gltf["samplers"] = samplers
@@ -680,10 +935,10 @@ def convert(bmd_data, out_dir, name):
 
     (out / f"{name}.bin").write_bytes(b"".join(bin_parts))
     (out / f"{name}.gltf").write_text(json.dumps(gltf))
-    return len(meshes_prims), len(texes)
+    return len(meshes_prims), len(animations)
 
 
 if __name__ == "__main__":
     data = Path(sys.argv[1]).read_bytes()
-    n_prims, n_tex = convert(data, sys.argv[2], Path(sys.argv[1]).stem)
-    print(f"{sys.argv[1]}: {n_prims} primitives, {n_tex} textures")
+    n_prims, n_anims = convert(data, sys.argv[2], Path(sys.argv[1]).stem)
+    print(f"{sys.argv[1]}: {n_prims} primitives, {n_anims} animations")
