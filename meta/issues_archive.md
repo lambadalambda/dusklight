@@ -9,3 +9,4 @@
 - [x] [Per-pixel GX lighting](issues/per-pixel-lighting.md)
 - [x] [Uber-shader fallback for pipeline compile stutter](issues/ubershader-compile-fallback.md)
 - [x] [Debug toggle to disable the shader cache](issues/disable-shader-cache-toggle.md)
+- [x] [Note anisotropic filtering subtlety in help text](issues/aniso-help-text-subtlety.md)

@@ -943,7 +943,9 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                 }
                 pane.add_rml("<br/>Keeps textures sharp at shallow viewing angles, such as "
                              "ground and paths. The original game does not use anisotropic "
-                             "filtering; \"Off\" matches its appearance.");
+                             "filtering; \"Off\" matches its appearance. The effect is very "
+                             "subtle at high internal resolutions — it is most visible at low "
+                             "internal resolutions and with HD texture packs.");
             });
         config_bool_select(leftPane, rightPane, getSettings().video.perPixelLighting,
             {
