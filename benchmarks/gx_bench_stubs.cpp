@@ -38,6 +38,7 @@
 #include "gx/gx_fmt.hpp"
 #include "gx/pipeline.hpp"
 #include "gx/shader_info.hpp"
+#include "gx/ubershader.hpp"
 #include "internal.hpp"
 #include "webgpu/gpu.hpp"
 
@@ -486,6 +487,15 @@ uint32_t get_sample_count() noexcept { return 1; }
 uint32_t align_uniform(uint32_t value) { return AURORA_ALIGN(value, 256); }
 } // namespace aurora::gfx
 
+// --- Ubershader stubs (never engaged: pipeline_ready below returns true) ---
+namespace aurora::gx::uber {
+bool supports(const ShaderConfig& config) noexcept { return false; }
+gfx::Range build_uniform(const ShaderConfig& config, u32 vtxStart, const BindGroupRanges& ranges) noexcept {
+  return {};
+}
+gfx::PipelineRef pipeline_ref(const PipelineConfig& config) { return 0; }
+} // namespace aurora::gx::uber
+
 // --- Pipeline/draw command recording ---
 namespace aurora::gfx {
 namespace {
@@ -501,6 +511,8 @@ PipelineRef pipeline_ref<clear::PipelineConfig>(const clear::PipelineConfig& con
 }
 template <>
 void push_draw_command<clear::DrawData>(clear::DrawData data) {}
+
+bool pipeline_ready(PipelineRef ref) { return true; }
 
 template <>
 PipelineRef pipeline_ref<gx::PipelineConfig>(const gx::PipelineConfig& config) {

@@ -27,3 +27,15 @@ the background.
 ## Notes
 
 - Large effort; tabled 2026-06-11 with the performance track.
+
+## Resolution (2026-06-12)
+
+Implemented in aurora 244d585 as a static WGSL interpreter driven by a
+fixed-layout uniform (re-encoded ShaderConfig words + full GX state).
+Uber pipelines are keyed by render state only and persist in the
+pipeline cache. Verified cold-cache: attract scenes render complete
+during the compile storm with no validation errors.
+
+v1 envelope exclusions (draws keep skip-until-compiled): indirect
+texturing, post-transform texture matrices, emboss/SRTG texgen,
+alpha-bump channels, lines/points.
