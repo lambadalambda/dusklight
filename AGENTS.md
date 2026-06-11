@@ -22,6 +22,15 @@ Workflow:
 - Pulling upstream improvements *into* our forks is fine; sending our
   changes *to* upstream is not.
 
+## Engineering practices
+
+- **Every performance improvement must come with benchmark evidence.** Use
+  `benchmarks/gx_bench` (synthetic workloads + real-game trace replay via
+  `GX_BENCH_TRACE`) for renderer CPU work, and capture before/after numbers
+  in the commit message. If no existing benchmark covers the change, add one
+  first. The reference traces live in `benchmarks/traces/` (gitignored;
+  capture new ones with `AURORA_GX_TRACE`, see `benchmarks/README.md`).
+
 ## Repo notes
 
 - `benchmarks/` contains `gx_bench`, a CPU benchmark suite for aurora's GX

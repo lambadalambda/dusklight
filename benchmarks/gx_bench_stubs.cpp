@@ -386,6 +386,39 @@ static const uint8_t* translate_storage(const void* ptr, size_t length) {
   return buf.data();
 }
 
+static UniformStats s_uniformStats;
+static std::vector<uint8_t> s_prevUniform;
+
+UniformStats& uniform_stats() { return s_uniformStats; }
+
+// Region boundaries per build_uniform's append order (see gx_bench_support.hpp).
+// With the matrix palette in storage, the transform region is proj + 32
+// palette offset words.
+constexpr size_t kUniformHeaderEnd = 80;
+constexpr size_t kUniformTransformEnd = 80 + 64 + 32 * 4;
+
+void record_uniform_push(const uint8_t* data, size_t length) {
+  auto& st = s_uniformStats;
+  ++st.pushes;
+  st.bytesPushed += length;
+  const bool comparable = length == s_prevUniform.size() && length >= kUniformTransformEnd;
+  if (comparable) {
+    if (memcmp(data + kUniformHeaderEnd, s_prevUniform.data() + kUniformHeaderEnd,
+               kUniformTransformEnd - kUniformHeaderEnd) == 0) {
+      ++st.transformUnchanged;
+      st.bytesSkippable += kUniformTransformEnd - kUniformHeaderEnd;
+    }
+    if (memcmp(data + kUniformTransformEnd, s_prevUniform.data() + kUniformTransformEnd,
+               length - kUniformTransformEnd) == 0) {
+      ++st.shadingUnchanged;
+      st.bytesSkippable += length - kUniformTransformEnd;
+    }
+  } else {
+    ++st.irregular;
+  }
+  s_prevUniform.assign(data, data + length);
+}
+
 void begin_frame() {
   s_frame.verts.clear();
   s_frame.indices.clear();
@@ -394,10 +427,13 @@ void begin_frame() {
   s_frame.draws.clear();
   aurora::gfx::g_drawCallCount = 0;
   aurora::gfx::g_mergedDrawCallCount = 0;
-  // Mirrors lib/gfx/common.cpp:1125 — storage ranges are invalidated each frame.
+  // Mirrors lib/gfx/common.cpp end-of-frame — storage ranges are invalidated
+  // each frame.
   for (auto& array : aurora::gx::g_gxState.arrays) {
     array.cachedRange = {};
   }
+  aurora::gx::g_gxState.mtxDirtyMask =
+      (1u << (aurora::gx::MaxPnMtx + aurora::gx::MaxTexMtx + aurora::gx::MaxPnMtx)) - 1;
 }
 } // namespace bench
 
@@ -424,6 +460,7 @@ Range push_indices(const uint8_t* data, size_t length, size_t alignment) {
   return bench_push(bench::s_frame.indices, data, length, alignment);
 }
 Range push_uniform(const uint8_t* data, size_t length) {
+  bench::record_uniform_push(data, length);
   // 256 = typical minUniformBufferOffsetAlignment
   return bench_push(bench::s_frame.uniforms, data, length, 256);
 }
@@ -431,6 +468,9 @@ Range push_storage(const uint8_t* data, size_t length) {
   if (bench::s_translateStorage)
     UNLIKELY { data = bench::translate_storage(data, length); }
   return bench_push(bench::s_frame.storage, data, length, 256);
+}
+Range push_storage_unaligned(const uint8_t* data, size_t length, size_t alignment) {
+  return bench_push(bench::s_frame.storage, data, length, alignment);
 }
 
 Vec2<uint32_t> get_render_target_size() noexcept { return {640, 480}; }

@@ -388,6 +388,7 @@ bool load_trace(const char* path) {
 void BM_TraceReplay(benchmark::State& state) {
   aurora::gx::g_gxState = aurora::gx::GXState{};
   bench::set_storage_translation(true);
+  bench::uniform_stats() = {};
 
   const double numFrames = static_cast<double>(g_trace.frames.size());
   double draws = 0, merged = 0, fifoB = 0, vertsB = 0, idxB = 0, uniB = 0, storB = 0;
@@ -421,6 +422,13 @@ void BM_TraceReplay(benchmark::State& state) {
   state.counters["uniform_KB"] = uniB / samples / 1024.0;
   state.counters["storage_KB"] = storB / samples / 1024.0;
   state.counters["pipelines"] = static_cast<double>(bench::pipeline_count());
+  const auto& us = bench::uniform_stats();
+  if (us.pushes > 0) {
+    state.counters["uni_xform_same_pct"] = 100.0 * static_cast<double>(us.transformUnchanged) / us.pushes;
+    state.counters["uni_shade_same_pct"] = 100.0 * static_cast<double>(us.shadingUnchanged) / us.pushes;
+    state.counters["uni_irregular_pct"] = 100.0 * static_cast<double>(us.irregular) / us.pushes;
+    state.counters["uni_skippable_KB"] = static_cast<double>(us.bytesSkippable) / samples / 1024.0;
+  }
   state.SetBytesProcessed(static_cast<int64_t>(fifoB + vertsB + idxB + uniB + storB));
 }
 
