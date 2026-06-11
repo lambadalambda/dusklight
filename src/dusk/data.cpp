@@ -980,6 +980,22 @@ bool is_data_path_restart_pending() {
 }
 
 Paths initialize_data() {
+    // Test/CI override: place both user data and caches in a fixed directory,
+    // bypassing platform preference-path resolution entirely.
+    if (const char* dataDirOverride = getenv("DUSK_DATA_DIR");
+        dataDirOverride != nullptr && dataDirOverride[0] != '\0')
+    {
+        const auto overridePath = path_from_utf8(dataDirOverride);
+        sActivePrefPath = overridePath;
+        sActiveDescriptorPath.reset();
+        sConfiguredDataPath = overridePath;
+        ensure_data_directory(overridePath);
+        return Paths{
+            .userPath = overridePath,
+            .cachePath = overridePath,
+        };
+    }
+
     const auto preferredPrefPath = get_pref_path();
     const auto prefPath =
         rename_legacy_pref_path(legacy_path_for_pref_path(preferredPrefPath), preferredPrefPath);
