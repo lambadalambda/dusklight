@@ -39,3 +39,7 @@ during the compile storm with no validation errors.
 v1 envelope exclusions (draws keep skip-until-compiled): indirect
 texturing, post-transform texture matrices, emboss/SRTG texgen,
 alpha-bump channels, lines/points.
+
+Field note (2026-06-12): negligible performance cost in practice —
+near-identical fps on Linux/Vulkan even with the shader cache disabled
+(i.e. large parts of the frame rendering through the interpreter).
