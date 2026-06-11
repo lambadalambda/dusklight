@@ -162,6 +162,11 @@ set(AURORA_ENABLE_RMLUI ON CACHE BOOL "Enable RmlUi UI support" FORCE)
 add_subdirectory(extern/aurora EXCLUDE_FROM_ALL)
 target_compile_definitions(aurora_mtx PRIVATE MTX_USE_PS=1)
 
+option(DUSK_BUILD_BENCHMARKS "Build CPU benchmarks (gx_bench)" ON)
+if (DUSK_BUILD_BENCHMARKS AND NOT CMAKE_CROSSCOMPILING)
+  add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
+endif ()
+
 add_subdirectory(libs/freeverb)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
