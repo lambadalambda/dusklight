@@ -59,7 +59,18 @@ window.addEventListener('resize', resize);
 resize();
 
 function frameObject(obj) {
-  const box = new THREE.Box3().setFromObject(obj);
+  // Frame from raw geometry bounds (bind pose): SkinnedMesh's own bounding
+  // box is computed from skinned positions, which are garbage before the
+  // first skeleton update and would sink the grid far below the feet.
+  obj.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  const tmp = new THREE.Box3();
+  obj.traverse((n) => {
+    if (!n.isMesh) return;
+    if (n.geometry.boundingBox === null) n.geometry.computeBoundingBox();
+    tmp.copy(n.geometry.boundingBox).applyMatrix4(n.matrixWorld);
+    box.union(tmp);
+  });
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   const radius = Math.max(size.x, size.y, size.z) * 0.6 || 100;
