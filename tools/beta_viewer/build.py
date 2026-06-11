@@ -64,6 +64,48 @@ TARGETS = {
             "551-line NPC never placed nor spawned; identity unclear."),
 }
 
+# remaining unique orphans with models on disc (terse notes)
+MORE_TARGETS = {
+    "Bombf": ("Bomb flower", "d_a_obj_bombf.cpp",
+              "Bomb flowers do not exist anywhere in retail Twilight Princess."),
+    "Npc_tr": ("Unused NPC “Npc_tr”", "d_a_npc_tr.cpp", "271-line NPC, never used."),
+    "solA": ("Unused NPC “solA”", "d_a_npc_sola.cpp", "Unused soldier-type NPC."),
+    "chtSolB": ("Castle Town soldier “chtSolB”", "d_a_npc_soldierB.cpp",
+                "Unused chatting-soldier variant."),
+    "midP": ("Midna stand-in “midP”", "d_a_npc_midp.cpp", "Unused Midna placeholder NPC."),
+    "E_hb": ("Big Baba object “Obj_hb”", "d_a_obj_hb.cpp",
+             "Object actor reusing the Big Baba enemy resources, never placed."),
+    "M_IzmGate": ("Spring gate “IzmGate”", "d_a_izumi_gate.cpp", "Unused gate object."),
+    "A_UHDoor": ("Cow door “UHDoor”", "d_a_obj_cowdoor.cpp", "Unused barn-door object."),
+    "M_Dust": ("Dust “Dust”", "d_a_obj_dust.cpp", "Unused dust object."),
+    "M_hasu": ("Lotus pad “M_hasu”", "d_a_obj_hasu2.cpp", "Unused water-lily object."),
+    "H_Bombkoy": ("Bomb shack “hbmbkoy”", "d_a_obj_hbombkoya.cpp",
+                  "Unused destructible bomb hut."),
+    "Obj_ki": ("Tree “Obj_ki”", "d_a_obj_ki.cpp", "Unused tree object."),
+    "K_jgjs": ("“kjgjs”", "d_a_obj_kjgjs.cpp", "Unused object (kjgjs/kjs names)."),
+    "Mhsg": ("Ladder “Mhsg*”", "d_a_obj_ladder.cpp",
+             "Six unused hidden-village ladder placements (Mhsg3..15)."),
+    "Obj_lbox": ("Letter box “Obj_lb”", "d_a_obj_lbox.cpp", "Unused box object."),
+    "Obj_lv6bm": ("Beamos variant “lv6bm”", "d_a_obj_lv6bemos.cpp",
+                  "Unused Temple of Time Beamos variant."),
+    "Lv8Kekkai": ("Barrier trap “kkiTrap”", "d_a_obj_lv8KekkaiTrap.cpp",
+                  "Unused Palace of Twilight barrier trap."),
+    "L8Lift": ("Palace lift “L8LiftX”", "d_a_obj_lv8Lift.cpp",
+               "Unused Palace of Twilight lift variant."),
+    "Sekizo": ("Statue “Sekizo”", "d_a_obj_sekizo.cpp", "Unused statue placement."),
+    "StaBlock": ("Stair block “stBlock”", "d_a_obj_stairBlock.cpp", "Unused stair block."),
+    "M_TreeSh": ("Tree “TreeSh”", "d_a_obj_treesh.cpp", "Unused tree variant."),
+    "H_Idohuta": ("Well cover “wcover”", "d_a_obj_well_cover.cpp",
+                  "Unused well-lid object (Kakariko well never opens in retail)."),
+    "yel_bag": ("Yellow bag “YBag”", "d_a_obj_yel_bag.cpp", "Unused carryable bag."),
+    "M_DrpRock": ("Icicle rock “zrDrock”", "d_a_obj_zrTurara.cpp",
+                  "Unused Zora icicle drop-rock."),
+    "zrF": ("Zora freeze block “zrF”", "d_a_obj_zra_freeze.cpp",
+            "Unused freeze blocks (zrF/zrF2/zrF3)."),
+    "Water": ("Groundwater “Water00”", "d_a_obj_groundwater.cpp", "Unused water volume."),
+    "FlagObj00": ("Flag “O_Flag”", "d_a_obj_flag.cpp", "Unused flag object."),
+}
+
 
 def build_nodx(workdir: Path) -> Path:
     exe = workdir / "nodx"
@@ -104,7 +146,9 @@ def main():
                        check=True, stdout=subprocess.DEVNULL)
 
         index = []
-        for arc_name, (title, source, note) in TARGETS.items():
+        groups = [("Headline finds", TARGETS), ("More orphans", MORE_TARGETS)]
+        for group_name, targets in groups:
+          for arc_name, (title, source, note) in targets.items():
             arc_path = arc_dir / f"res_Object_{arc_name}.arc"
             if not arc_path.exists():
                 print(f"!! missing {arc_path.name}, skipping")
@@ -128,7 +172,8 @@ def main():
                       f"{n_anims}/{len(anims)} animations")
             if entry_models:
                 index.append({"title": title, "arc": arc_name, "source": source,
-                              "note": note, "models": entry_models})
+                              "note": note, "models": entry_models,
+                              "group": group_name})
 
     (out / "models.json").write_text(json.dumps(index, indent=1))
     for f in ("index.html", "app.js"):

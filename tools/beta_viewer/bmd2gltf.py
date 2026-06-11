@@ -351,7 +351,9 @@ def decode_packet(d, o, size, attribs, arrays, draw_matrices, mtx_slots, verts, 
         o += 1
         if op == 0:
             continue
-        if op not in PRIM_VERTS:
+        # stray non-zero tail padding shows up as a bogus opcode right at the
+        # end of the packet; stop rather than read past it
+        if op not in PRIM_VERTS or o + 2 > end:
             break
         count = u16(d, o)
         o += 2
@@ -449,7 +451,13 @@ def parse_tex1(d, off, size):
         palette = None
         if pal_count:
             palette = decode_palette(d, h + pal_off, pal_count, pal_fmt)
-        rgba = decode_texture(d, h + data_rel, w, hgt, fmt, palette)
+        try:
+            rgba = decode_texture(d, h + data_rel, w, hgt, fmt, palette)
+        except (struct.error, IndexError):
+            # texture data lives in a sibling model's BMD (J3D shared texture
+            # memory); substitute flat gray so the model still converts
+            w = hgt = 4
+            rgba = bytes((128, 128, 128, 255)) * 16
         texes.append((w, hgt, rgba, wrap_s, wrap_t))
     return texes
 

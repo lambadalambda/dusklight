@@ -141,7 +141,17 @@ const list = document.getElementById('list');
 const resp = await fetch('models.json');
 const entries = await resp.json();
 
+let lastGroup = null;
 entries.forEach((entry, i) => {
+  if (entry.group && entry.group !== lastGroup) {
+    lastGroup = entry.group;
+    const h = document.createElement('div');
+    h.textContent = entry.group;
+    h.style.cssText =
+      'margin:14px 0 8px;font-size:12px;font-weight:600;color:#7d74a0;' +
+      'text-transform:uppercase;letter-spacing:0.08em;';
+    list.appendChild(h);
+  }
   const card = document.createElement('div');
   card.className = 'card';
   card.innerHTML = `<h2>${entry.title}</h2>
