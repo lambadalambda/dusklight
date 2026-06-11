@@ -2453,6 +2453,14 @@ int mDoGph_Painter() {
             j3dSys.reinitGX();
             GXSetClipMode(GX_CLIP_ENABLE);
 
+#if TARGET_PC
+            // Screen-space ambient occlusion over the completed 3D scene,
+            // before post effects and 2D/UI drawing.
+            if (dusk::getSettings().video.ssao) {
+                aurora_queue_ssao(40.0f, 0.45f);
+            }
+#endif
+
 #if DEBUG
             if (dJcame_c::get()) {
                 dJcame_c::get()->show3D(camera_p->view.viewMtx);

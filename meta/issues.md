@@ -7,7 +7,6 @@ Graphics bugs:
 Lighting track:
 
 - [ ] [Extend ubershader envelope (projected lighting, emboss, indirect)](issues/ubershader-envelope-extension.md)
-- [ ] [Screen-space ambient occlusion (opt-in)](issues/ssao.md)
 - [ ] [Screen-space contact shadows (opt-in)](issues/screen-space-contact-shadows.md)
 - [ ] [Ray-traced lighting (deferred)](issues/rt-lighting-deferred.md)
 

@@ -28,3 +28,11 @@ twilight art direction is preserved.
 - Lighting track (2026-06-12). Do after per-pixel lighting; reuses its
   verification flow. XeGTAO-style depth-only AO is the reference
   approach.
+
+## Resolution (2026-06-12)
+
+Implemented (aurora) as a mid-frame queued pass: half-res depth-only AO
+(8 spiral taps) multiplied onto the scene color between the 3D scene
+and post/2D, hooked in m_Do_graphic. Off by default; applies live.
+Radius 40 / intensity 0.45 — tune from real gameplay feedback.
+Frame-time cost measurement deferred to gameplay testing.

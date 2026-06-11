@@ -142,6 +142,8 @@ struct UserSettings {
         ConfigVar<bool> perPixelLighting;
         // Debug: disable the persistent shader cache (applied at startup)
         ConfigVar<bool> disableShaderCache;
+        // Screen-space ambient occlusion (applied live)
+        ConfigVar<bool> ssao;
     } video;
 
     struct {

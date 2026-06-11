@@ -955,6 +955,13 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                             "Geometry may briefly pop in while shaders rebuild after toggling.",
                 .onChange = [](bool value) { aurora_set_per_pixel_lighting(value); },
             });
+        config_bool_select(leftPane, rightPane, getSettings().video.ssao,
+            {
+                .key = "Ambient Occlusion (SSAO)",
+                .helpText = "Adds subtle contact shading derived from scene depth, giving "
+                            "corners and crevices more depth. An enhancement not present in "
+                            "the original game; applies immediately.",
+            });
         config_bool_select(leftPane, rightPane, getSettings().video.disableShaderCache,
             {
                 .key = "Disable Shader Cache (Debug)",
