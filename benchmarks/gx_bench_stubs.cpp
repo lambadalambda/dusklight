@@ -434,6 +434,7 @@ void begin_frame() {
   }
   aurora::gx::g_gxState.mtxDirtyMask =
       (1u << (aurora::gx::MaxPnMtx + aurora::gx::MaxTexMtx + aurora::gx::MaxPnMtx)) - 1;
+  aurora::gx::g_gxState.pipelineDirty = true;
 }
 } // namespace bench
 
