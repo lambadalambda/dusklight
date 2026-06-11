@@ -134,6 +134,10 @@ struct UserSettings {
         ConfigVar<bool> enableFpsOverlay;
         ConfigVar<int> fpsOverlayCorner;
         ConfigVar<int> maxFrameRate;
+        // 1 = off; 4 = 4x MSAA (applied at startup)
+        ConfigVar<int> msaaSamples;
+        // 0 = game default (effectively unfiltered); 2/4/8/16 = forced level
+        ConfigVar<int> anisotropicFiltering;
     } video;
 
     struct {

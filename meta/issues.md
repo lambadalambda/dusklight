@@ -1,9 +1,5 @@
 # Open issues
 
-Graphics track:
-
-- [ ] [Expose MSAA and anisotropic filtering settings](issues/expose-msaa-and-anisotropic-filtering.md)
-
 Performance track (tabled 2026-06-11 — fast enough on current desktop
 hardware; revisit for Android/high-refresh; baselines and methodology in
 benchmarks/README.md, reference traces in benchmarks/traces/):

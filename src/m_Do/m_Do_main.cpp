@@ -582,6 +582,9 @@ int game_main(int argc, char* argv[]) {
 #endif
         config.vsync = dusk::getSettings().video.enableVsync;
         config.startFullscreen = dusk::getSettings().video.enableFullscreen;
+        config.msaa = std::max(dusk::getSettings().video.msaaSamples.getValue(), 1);
+        config.forceTextureAnisotropy =
+            static_cast<uint16_t>(std::clamp(dusk::getSettings().video.anisotropicFiltering.getValue(), 0, 16));
         config.windowPosX = -1;
         config.windowPosY = -1;
         config.windowWidth = defaultWindowWidth * 2;

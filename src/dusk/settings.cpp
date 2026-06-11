@@ -11,6 +11,8 @@ UserSettings g_userSettings = {
         .enableFpsOverlay {"game.enableFpsOverlay", false},
         .fpsOverlayCorner {"game.fpsOverlayCorner", 0},
         .maxFrameRate {"video.maxFrameRate", 240},
+        .msaaSamples {"video.msaaSamples", 1},
+        .anisotropicFiltering {"video.anisotropicFiltering", 0},
     },
 
     .audio = {
@@ -200,6 +202,8 @@ void registerSettings() {
     Register(g_userSettings.video.enableFpsOverlay);
     Register(g_userSettings.video.fpsOverlayCorner);
     Register(g_userSettings.video.maxFrameRate);
+    Register(g_userSettings.video.msaaSamples);
+    Register(g_userSettings.video.anisotropicFiltering);
 
     // Audio
     Register(g_userSettings.audio.masterVolume);

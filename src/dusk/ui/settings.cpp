@@ -866,6 +866,85 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
             mPrelaunch);
 
         leftPane.add_section("Rendering");
+        leftPane.register_control(
+            leftPane.add_select_button({
+                .key = "Anti-Aliasing (MSAA)",
+                .getValue =
+                    [] {
+                        return Rml::String{
+                            getSettings().video.msaaSamples.getValue() > 1 ? "4x" : "Off"};
+                    },
+                .isModified =
+                    [] {
+                        return getSettings().video.msaaSamples.getValue() !=
+                               getSettings().video.msaaSamples.getDefaultValue();
+                    },
+            }),
+            rightPane, [](Pane& pane) {
+                static constexpr std::array<std::pair<const char*, int>, 2> kMsaaModes{{
+                    {"Off", 1},
+                    {"4x", 4},
+                }};
+                for (const auto& [name, samples] : kMsaaModes) {
+                    pane.add_button({
+                            .text = name,
+                            .isSelected =
+                                [samples] {
+                                    return getSettings().video.msaaSamples.getValue() == samples;
+                                },
+                        })
+                        .on_pressed([samples] {
+                            mDoAud_seStartMenu(kSoundItemChange);
+                            getSettings().video.msaaSamples.setValue(samples);
+                            config::Save();
+                        });
+                }
+                pane.add_rml("<br/>Smooths jagged geometry edges with 4x multisampling. "
+                             "Takes effect after restarting the game.");
+            });
+        leftPane.register_control(
+            leftPane.add_select_button({
+                .key = "Anisotropic Filtering",
+                .getValue =
+                    [] {
+                        const int value = getSettings().video.anisotropicFiltering.getValue();
+                        return value <= 0 ? Rml::String{"Off"}
+                                          : Rml::String{std::to_string(value) + "x"};
+                    },
+                .isModified =
+                    [] {
+                        return getSettings().video.anisotropicFiltering.getValue() !=
+                               getSettings().video.anisotropicFiltering.getDefaultValue();
+                    },
+            }),
+            rightPane, [](Pane& pane) {
+                static constexpr std::array<std::pair<const char*, int>, 5> kAnisoModes{{
+                    {"Off", 0},
+                    {"2x", 2},
+                    {"4x", 4},
+                    {"8x", 8},
+                    {"16x", 16},
+                }};
+                for (const auto& [name, level] : kAnisoModes) {
+                    pane.add_button({
+                            .text = name,
+                            .isSelected =
+                                [level] {
+                                    return getSettings().video.anisotropicFiltering.getValue() ==
+                                           level;
+                                },
+                        })
+                        .on_pressed([level] {
+                            mDoAud_seStartMenu(kSoundItemChange);
+                            getSettings().video.anisotropicFiltering.setValue(level);
+                            aurora_set_force_anisotropy(static_cast<uint16_t>(level));
+                            config::Save();
+                        });
+                }
+                pane.add_rml("<br/>Keeps textures sharp at shallow viewing angles, such as "
+                             "ground and paths. The original game does not use anisotropic "
+                             "filtering; \"Off\" matches its appearance.");
+            });
         graphics_tuner_control(*this, leftPane, rightPane,
             getSettings().game.enableTextureReplacements,
             GraphicsTunerProps{

@@ -5,3 +5,4 @@
 - [x] [Move matrix palette out of the per-draw uniform block](issues/matrix-palette-storage-buffer.md)
 - [x] [Headless mode and trigger-file screenshots](issues/headless-mode-and-screenshots.md)
 - [x] [Reuse pipeline state across uniform-only dirty draws](issues/pipeline-state-reuse.md)
+- [x] [Expose MSAA and anisotropic filtering settings](issues/expose-msaa-and-anisotropic-filtering.md)
