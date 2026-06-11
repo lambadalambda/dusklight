@@ -32,3 +32,6 @@ is also excluded.
 - Follow-up to issues/ubershader-compile-fallback.md (v1 envelope
   documented there). Priority: PT matrices first — likely the bulk of
   what was observed.
+
+Update (2026-06-12): tabled — the v1 envelope already eliminates the
+distracting pop-in; remaining late materials are acceptable.

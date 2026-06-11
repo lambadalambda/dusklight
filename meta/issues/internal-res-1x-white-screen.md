@@ -26,3 +26,7 @@ texture when the EFB is at native GC size.
 
 - Found 2026-06-12 during the anisotropic filtering investigation. The
   sampler-level aniso verification was unaffected (done at auto res).
+
+Update (2026-06-12): user confirms windowed 1x rendering is correct —
+this is a screenshot-path bug only (wrong/empty source at native EFB
+size). Tabled; low priority.
