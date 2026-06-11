@@ -2,7 +2,6 @@
 
 Lighting track:
 
-- [ ] [Per-pixel GX lighting](issues/per-pixel-lighting.md)
 - [ ] [Screen-space ambient occlusion (opt-in)](issues/ssao.md)
 - [ ] [Screen-space contact shadows (opt-in)](issues/screen-space-contact-shadows.md)
 - [ ] [Ray-traced lighting (deferred)](issues/rt-lighting-deferred.md)

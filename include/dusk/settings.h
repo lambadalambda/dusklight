@@ -138,6 +138,8 @@ struct UserSettings {
         ConfigVar<int> msaaSamples;
         // 0 = game default (effectively unfiltered); 2/4/8/16 = forced level
         ConfigVar<int> anisotropicFiltering;
+        // Evaluate GX lighting per fragment instead of per vertex
+        ConfigVar<bool> perPixelLighting;
     } video;
 
     struct {

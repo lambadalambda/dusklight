@@ -945,6 +945,14 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                              "ground and paths. The original game does not use anisotropic "
                              "filtering; \"Off\" matches its appearance.");
             });
+        config_bool_select(leftPane, rightPane, getSettings().video.perPixelLighting,
+            {
+                .key = "Per-Pixel Lighting",
+                .helpText = "Evaluate dynamic lighting per pixel instead of per vertex, "
+                            "smoothing lantern and torch light falloff on low-poly geometry. "
+                            "Geometry may briefly pop in while shaders rebuild after toggling.",
+                .onChange = [](bool value) { aurora_set_per_pixel_lighting(value); },
+            });
         graphics_tuner_control(*this, leftPane, rightPane,
             getSettings().game.enableTextureReplacements,
             GraphicsTunerProps{

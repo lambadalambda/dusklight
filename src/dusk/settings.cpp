@@ -13,6 +13,7 @@ UserSettings g_userSettings = {
         .maxFrameRate {"video.maxFrameRate", 240},
         .msaaSamples {"video.msaaSamples", 1},
         .anisotropicFiltering {"video.anisotropicFiltering", 0},
+        .perPixelLighting {"video.perPixelLighting", false},
     },
 
     .audio = {
@@ -204,6 +205,7 @@ void registerSettings() {
     Register(g_userSettings.video.maxFrameRate);
     Register(g_userSettings.video.msaaSamples);
     Register(g_userSettings.video.anisotropicFiltering);
+    Register(g_userSettings.video.perPixelLighting);
 
     // Audio
     Register(g_userSettings.audio.masterVolume);
