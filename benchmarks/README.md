@@ -102,3 +102,28 @@ The replay decodes the exact per-frame command stream the game produced
 from the game process are redirected to same-sized scratch buffers, so upload
 memcpy costs are preserved without dereferencing game memory. The Time column
 is for the whole trace; divide by the `frames` counter for per-frame cost.
+
+### Headless runs & screenshots
+
+For automated verification without opening a window, aurora supports:
+
+```sh
+AURORA_HEADLESS=1                       # window never shown, no present,
+                                        # frames still render offscreen
+AURORA_SCREENSHOT_TRIGGER=/tmp/snap     # `touch /tmp/snap` captures the next
+                                        # frame (trigger file is consumed)
+AURORA_SCREENSHOT_DIR=/tmp/screens      # PNG output dir (screenshot_<n>.png)
+```
+
+Combine with `DUSK_DATA_DIR=<dir>` and `--cvar audio.masterVolume=0` for a
+fully self-contained verification run:
+
+```sh
+env DUSK_DATA_DIR=/tmp/duskdata AURORA_HEADLESS=1 \
+    AURORA_SCREENSHOT_TRIGGER=/tmp/snap AURORA_SCREENSHOT_DIR=/tmp/screens \
+    ./Dusklight.app/Contents/MacOS/Dusklight --cvar audio.masterVolume=0 "<game>.rvz" &
+# ...wait for the scene you want, then:
+touch /tmp/snap   # capture; "screenshot: wrote ..." appears in the log
+```
+
+Screenshots also work in windowed (non-headless) runs.
