@@ -2457,7 +2457,11 @@ int mDoGph_Painter() {
             // Screen-space ambient occlusion over the completed 3D scene,
             // before post effects and 2D/UI drawing.
             if (dusk::getSettings().video.ssao) {
-                aurora_queue_ssao(40.0f, 0.45f);
+                const float strength = dusk::getSettings().video.ssaoStrength.getValue() / 100.0f;
+                const float radius = (float)dusk::getSettings().video.ssaoRadius.getValue();
+                // Darkness cap scales with strength so the slider has range.
+                const float aoFloor = std::max(0.15f, 0.75f - strength * 0.8f);
+                aurora_queue_ssao(radius, strength, aoFloor);
             }
 #endif
 

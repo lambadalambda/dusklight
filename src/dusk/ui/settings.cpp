@@ -962,6 +962,29 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                             "corners and crevices more depth. An enhancement not present in "
                             "the original game; applies immediately.",
             });
+        graphics_tuner_control(*this, leftPane, rightPane, getSettings().video.ssaoStrength,
+            GraphicsTunerProps{
+                .option = GraphicsOption::SsaoStrength,
+                .title = "SSAO Strength",
+                .helpText = "How strongly ambient occlusion darkens corners and crevices. "
+                            "Applies immediately.",
+                .valueMin = 0,
+                .valueMax = 100,
+                .defaultValue = 45,
+                .step = 5,
+            }, mPrelaunch);
+        graphics_tuner_control(*this, leftPane, rightPane, getSettings().video.ssaoRadius,
+            GraphicsTunerProps{
+                .option = GraphicsOption::SsaoRadius,
+                .title = "SSAO Radius",
+                .helpText = "Size of the area each surface checks for nearby occluders, in "
+                            "world units. Larger values shade broader areas. Applies "
+                            "immediately.",
+                .valueMin = 10,
+                .valueMax = 120,
+                .defaultValue = 40,
+                .step = 10,
+            }, mPrelaunch);
         config_bool_select(leftPane, rightPane, getSettings().video.disableShaderCache,
             {
                 .key = "Disable Shader Cache (Debug)",

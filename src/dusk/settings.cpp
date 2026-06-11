@@ -16,6 +16,8 @@ UserSettings g_userSettings = {
         .perPixelLighting {"video.perPixelLighting", false},
         .disableShaderCache {"video.disableShaderCache", false},
         .ssao {"video.ssao", false},
+        .ssaoStrength {"video.ssaoStrength", 45},
+        .ssaoRadius {"video.ssaoRadius", 40},
     },
 
     .audio = {
@@ -210,6 +212,8 @@ void registerSettings() {
     Register(g_userSettings.video.perPixelLighting);
     Register(g_userSettings.video.disableShaderCache);
     Register(g_userSettings.video.ssao);
+    Register(g_userSettings.video.ssaoStrength);
+    Register(g_userSettings.video.ssaoRadius);
 
     // Audio
     Register(g_userSettings.audio.masterVolume);

@@ -144,6 +144,8 @@ struct UserSettings {
         ConfigVar<bool> disableShaderCache;
         // Screen-space ambient occlusion (applied live)
         ConfigVar<bool> ssao;
+        ConfigVar<int> ssaoStrength; // 0-100
+        ConfigVar<int> ssaoRadius;   // view-space units
     } video;
 
     struct {

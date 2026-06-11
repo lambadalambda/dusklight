@@ -58,6 +58,10 @@ int get_value(GraphicsOption option) {
         return static_cast<int>(getSettings().game.depthOfFieldMode.getValue());
     case GraphicsOption::TextureReplacements:
         return getSettings().game.enableTextureReplacements.getValue();
+    case GraphicsOption::SsaoStrength:
+        return getSettings().video.ssaoStrength.getValue();
+    case GraphicsOption::SsaoRadius:
+        return getSettings().video.ssaoRadius.getValue();
     }
     return 0;
 }
@@ -100,6 +104,12 @@ void set_value(GraphicsOption option, int value) {
         break;
     case GraphicsOption::TextureReplacements:
         texture_replacements::set_enabled(static_cast<bool>(value));
+        break;
+    case GraphicsOption::SsaoStrength:
+        getSettings().video.ssaoStrength.setValue(std::clamp(value, 0, 100));
+        break;
+    case GraphicsOption::SsaoRadius:
+        getSettings().video.ssaoRadius.setValue(std::clamp(value, 10, 120));
         break;
     }
 }
@@ -240,6 +250,10 @@ Rml::String format_graphics_setting_value(GraphicsOption option, int value) {
         return fmt::format("{}%", value);
     case GraphicsOption::TextureReplacements:
         return static_cast<bool>(value) ? "On" : "Off";
+    case GraphicsOption::SsaoStrength:
+        return fmt::format("{}%", value);
+    case GraphicsOption::SsaoRadius:
+        return fmt::format("{}", value);
     }
     return "";
 }
