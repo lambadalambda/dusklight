@@ -1,5 +1,9 @@
 # Open issues
 
+Graphics bugs:
+
+- [ ] [internalResolutionScale=1 renders white in headless captures](issues/internal-res-1x-white-screen.md)
+
 Lighting track:
 
 - [ ] [Extend ubershader envelope (projected lighting, emboss, indirect)](issues/ubershader-envelope-extension.md)
