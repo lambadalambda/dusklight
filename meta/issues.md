@@ -18,3 +18,4 @@ benchmarks/README.md, reference traces in benchmarks/traces/):
 - [ ] [Split shading state out of the per-draw uniform block](issues/uniform-shading-region-split.md)
 - [ ] [Process GXCallDisplayList without the FIFO copy](issues/gx-calldisplaylist-direct-process.md)
 - [ ] [GPU skinning for J3D CPU-deformed models](issues/gpu-skinning.md)
+- [ ] [Beta content viewer (web gallery for unused actors)](issues/beta-content-viewer.md)

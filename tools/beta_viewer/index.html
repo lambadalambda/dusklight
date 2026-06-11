@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dusklight — Beta Content Viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; display: flex; height: 100vh; overflow: hidden;
+    background: #14121a; color: #e8e4f0;
+    font: 14px/1.5 -apple-system, "Segoe UI", sans-serif;
+  }
+  #sidebar {
+    width: 340px; min-width: 340px; overflow-y: auto; padding: 16px;
+    background: #1b1824; border-right: 1px solid #2e2a3a;
+  }
+  h1 { font-size: 17px; margin: 0 0 4px; color: #c9b8ff; }
+  #sidebar > p { color: #8d86a0; font-size: 12px; margin: 0 0 14px; }
+  .card {
+    padding: 10px 12px; margin-bottom: 8px; border-radius: 8px;
+    background: #221e2e; border: 1px solid #2e2a3a; cursor: pointer;
+  }
+  .card:hover { border-color: #6f5fae; }
+  .card.active { border-color: #a78bfa; background: #2a2440; }
+  .card h2 { font-size: 14px; margin: 0; }
+  .card .src { font-size: 11px; color: #9a8fd0; font-family: ui-monospace, monospace; }
+  .card .note { font-size: 12px; color: #aaa3bd; margin-top: 4px; }
+  .card .variants { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .card .variants button {
+    font-size: 11px; padding: 2px 8px; border-radius: 5px; cursor: pointer;
+    background: #383050; color: #d8d2ee; border: 1px solid #4a4168;
+  }
+  .card .variants button.sel { background: #6d5cae; border-color: #8f7fd4; }
+  #stage { flex: 1; position: relative; }
+  #stage canvas { display: block; }
+  #hud {
+    position: absolute; left: 14px; bottom: 12px; font-size: 12px;
+    color: #8d86a0; pointer-events: none;
+  }
+  #err {
+    position: absolute; inset: 0; display: none; place-items: center;
+    color: #f0a0a0; padding: 40px; text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div id="sidebar">
+    <h1>Beta Content Viewer</h1>
+    <p>Unused actors found on the retail Twilight Princess disc —
+       never placed in any map, never spawned by code.</p>
+    <div id="list"></div>
+  </div>
+  <div id="stage">
+    <div id="hud"></div>
+    <div id="err"></div>
+  </div>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
