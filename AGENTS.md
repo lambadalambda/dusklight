@@ -22,6 +22,24 @@ Workflow:
 - Pulling upstream improvements *into* our forks is fine; sending our
   changes *to* upstream is not.
 
+## Issue tracking
+
+Issues are tracked in-repo under `meta/`, not in an external tracker:
+
+- `meta/issues.md` — open issue index (checklist of links only, no bodies)
+- `meta/issues_archive.md` — completed issue index (`- [x]` entries)
+- `meta/issues/<kebab-case-slug>.md` — one detail file per issue with
+  Summary / Requirements / Acceptance Criteria / Notes sections
+
+Rules:
+
+- **Open an issue for every change you make** — even if you implement it
+  immediately and archive the issue in the same commit. The tracker is the
+  record of what was done and why.
+- Archiving moves the index entry from `issues.md` to `issues_archive.md`
+  (marker `- [x]`); detail files are never deleted.
+- Only mark an issue completed when its acceptance criteria are verified.
+
 ## Engineering practices
 
 - **Every performance improvement must come with benchmark evidence.** Use
