@@ -586,6 +586,7 @@ int game_main(int argc, char* argv[]) {
         config.forceTextureAnisotropy =
             static_cast<uint16_t>(std::clamp(dusk::getSettings().video.anisotropicFiltering.getValue(), 0, 16));
         config.perPixelLighting = dusk::getSettings().video.perPixelLighting;
+        config.disableShaderCache = dusk::getSettings().video.disableShaderCache;
         config.windowPosX = -1;
         config.windowPosY = -1;
         config.windowWidth = defaultWindowWidth * 2;

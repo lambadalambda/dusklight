@@ -953,6 +953,13 @@ SettingsWindow::SettingsWindow(bool prelaunch) : mPrelaunch(prelaunch) {
                             "Geometry may briefly pop in while shaders rebuild after toggling.",
                 .onChange = [](bool value) { aurora_set_per_pixel_lighting(value); },
             });
+        config_bool_select(leftPane, rightPane, getSettings().video.disableShaderCache,
+            {
+                .key = "Disable Shader Cache (Debug)",
+                .helpText = "Debug option: skip loading and saving the persistent shader cache, "
+                            "so every shader compiles fresh each run. Useful for testing shader "
+                            "compilation behavior. Takes effect after restarting the game.",
+            });
         graphics_tuner_control(*this, leftPane, rightPane,
             getSettings().game.enableTextureReplacements,
             GraphicsTunerProps{

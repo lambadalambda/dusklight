@@ -14,6 +14,7 @@ UserSettings g_userSettings = {
         .msaaSamples {"video.msaaSamples", 1},
         .anisotropicFiltering {"video.anisotropicFiltering", 0},
         .perPixelLighting {"video.perPixelLighting", false},
+        .disableShaderCache {"video.disableShaderCache", false},
     },
 
     .audio = {
@@ -206,6 +207,7 @@ void registerSettings() {
     Register(g_userSettings.video.msaaSamples);
     Register(g_userSettings.video.anisotropicFiltering);
     Register(g_userSettings.video.perPixelLighting);
+    Register(g_userSettings.video.disableShaderCache);
 
     // Audio
     Register(g_userSettings.audio.masterVolume);

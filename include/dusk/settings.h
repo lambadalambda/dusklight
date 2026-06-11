@@ -140,6 +140,8 @@ struct UserSettings {
         ConfigVar<int> anisotropicFiltering;
         // Evaluate GX lighting per fragment instead of per vertex
         ConfigVar<bool> perPixelLighting;
+        // Debug: disable the persistent shader cache (applied at startup)
+        ConfigVar<bool> disableShaderCache;
     } video;
 
     struct {

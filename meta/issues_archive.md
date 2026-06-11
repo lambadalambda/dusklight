@@ -8,3 +8,4 @@
 - [x] [Expose MSAA and anisotropic filtering settings](issues/expose-msaa-and-anisotropic-filtering.md)
 - [x] [Per-pixel GX lighting](issues/per-pixel-lighting.md)
 - [x] [Uber-shader fallback for pipeline compile stutter](issues/ubershader-compile-fallback.md)
+- [x] [Debug toggle to disable the shader cache](issues/disable-shader-cache-toggle.md)
