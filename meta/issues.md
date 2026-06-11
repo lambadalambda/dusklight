@@ -1,5 +1,12 @@
 # Open issues
 
+Lighting track:
+
+- [ ] [Per-pixel GX lighting](issues/per-pixel-lighting.md)
+- [ ] [Screen-space ambient occlusion (opt-in)](issues/ssao.md)
+- [ ] [Screen-space contact shadows (opt-in)](issues/screen-space-contact-shadows.md)
+- [ ] [Ray-traced lighting (deferred)](issues/rt-lighting-deferred.md)
+
 Performance track (tabled 2026-06-11 — fast enough on current desktop
 hardware; revisit for Android/high-refresh; baselines and methodology in
 benchmarks/README.md, reference traces in benchmarks/traces/):
